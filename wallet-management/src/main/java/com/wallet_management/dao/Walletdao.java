@@ -67,7 +67,13 @@ public class Walletdao {
 
 
 
-    //not in use
+
+
+
+    
+
+
+    //this function is not used
     public void updateBalance(Connection con,int wallet_id,double newBalance) throws Exception{
 
         PreparedStatement ps=con.prepareStatement("update wallet set balance=? where wallet_id=? and active=1");

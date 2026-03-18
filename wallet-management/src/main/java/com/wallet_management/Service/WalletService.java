@@ -33,7 +33,7 @@ public class WalletService {
 
 
 
-
+    //This function is not used
 
     public void topup(int wallet_id, double amount) throws Exception{
 
