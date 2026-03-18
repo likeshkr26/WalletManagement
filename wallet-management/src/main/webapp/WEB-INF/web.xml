@@ -7,14 +7,4 @@
 
     <display-name>wallet_management</display-name>
 
-    <servlet>
-        <servlet-name>WalletManagement</servlet-name>
-        <servlet-class>com.wallet_management.Wallet</servlet-class>
-        <load-on-startup>1</load-on-startup>
-    </servlet>
-    <servlet-mapping>
-        <servlet-name>WalletManagement</servlet-name>
-        <url-pattern>/api/*</url-pattern>
-    </servlet-mapping>
-
 </web-app>
