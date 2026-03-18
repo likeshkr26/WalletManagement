@@ -5,6 +5,8 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 
+import javax.naming.spi.DirStateFactory.Result;
+
 import com.wallet_management.Model.Wallet;
 
 public class Walletdao {
@@ -65,12 +67,26 @@ public class Walletdao {
         throw new Exception("Wallet not found or inactive");
     }
 
+    public int isActive(Connection con,int wallet_id) throws Exception{
+        
+        PreparedStatement ps=con.prepareStatement("select active from wallet where wallet_id=?");
+        ps.setInt(1, wallet_id);
+
+        ResultSet rs=ps.executeQuery();
+
+        if(rs.next())
+        {
+            return rs.getInt(1);
+        }
+
+        return 0;
+    }
 
 
 
 
 
-    
+
 
 
     //this function is not used

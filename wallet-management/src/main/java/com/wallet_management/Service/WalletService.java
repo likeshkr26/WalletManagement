@@ -28,6 +28,13 @@ public class WalletService {
         return wallet.getWalletByID(con, wallet_id);
     }
 
+    public int isActive(int wallet_id) throws Exception
+    {
+        Connection con=DBConnection.getConnection();
+
+        return wallet.isActive(con, wallet_id);
+    }
+
 
 
 

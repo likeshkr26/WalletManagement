@@ -146,6 +146,9 @@ public class UserServlet extends HttpServlet {
 
     protected void doPatch(HttpServletRequest req,HttpServletResponse res) throws ServletException,Exception
     {
+        res.setContentType("application/json");
+        res.setCharacterEncoding("UTF-8");
+        
         String path=req.getPathInfo();
         String parts[]=path.split("/");
 
