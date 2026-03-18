@@ -5,7 +5,6 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 
-import javax.naming.spi.DirStateFactory.Result;
 
 import com.wallet_management.Model.Wallet;
 

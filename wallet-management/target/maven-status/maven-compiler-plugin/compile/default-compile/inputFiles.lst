@@ -2,6 +2,7 @@
 /Users/likesh-nts0472/Documents/WalletManagement/wallet-management/src/main/java/com/wallet_management/Service/UserService.java
 /Users/likesh-nts0472/Documents/WalletManagement/wallet-management/src/main/java/com/wallet_management/Model/PrimaryWallet.java
 /Users/likesh-nts0472/Documents/WalletManagement/wallet-management/src/main/java/com/wallet_management/Servlet/v1/TopupServlet.java
+/Users/likesh-nts0472/Documents/WalletManagement/wallet-management/src/main/java/com/wallet_management/Model/Report.java
 /Users/likesh-nts0472/Documents/WalletManagement/wallet-management/src/main/java/com/wallet_management/Service/WalletService.java
 /Users/likesh-nts0472/Documents/WalletManagement/wallet-management/src/main/java/com/wallet_management/dao/Userdao.java
 /Users/likesh-nts0472/Documents/WalletManagement/wallet-management/src/main/java/com/wallet_management/Model/Wallet.java

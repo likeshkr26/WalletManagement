@@ -117,7 +117,7 @@ public class Reportdao {
 
         try{
 
-            PreparedStatement ps=con.prepareStatement("select u.name,coalesce(sum(t.amount),0) as total_spent from user u left join wallet w on w.user_id=u.user_id left join transaction t on t.wallet_id=w.wallet_id and type in(2,3) and t.created_at>=? and t.created_at<Date_ADD(?,interval 1 day) group by u.user_id,u.name order by total_spent desc limit 10;");
+            PreparedStatement ps=con.prepareStatement("select u.name,coalesce(sum(t.amount),0) as total_spent from user u left join wallet w on w.user_id=u.user_id left join transaction t on t.wallet_id=w.wallet_id and type in(2,3) and t.created_at>=? and t.created_at<Date_ADD(?,interval 1 day) group by u.user_id,u.name order by total_spent desc,u.name asc limit 10;");
             ps.setString(1, from);
             ps.setString(2, to);
 

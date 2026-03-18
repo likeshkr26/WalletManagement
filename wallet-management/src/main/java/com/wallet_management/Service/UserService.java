@@ -44,7 +44,11 @@ public class UserService {
         Connection con=DBConnection.getConnection();
 
         userdao.updatePrimaryWallet(con, user_id, wallet_id);
-        
+    }
+
+    public boolean updateUser(int id,String name,int primaryWallet) throws Exception {
+
+        return userdao.updateUser(id, name, primaryWallet);
     }
 
 

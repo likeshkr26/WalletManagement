@@ -1,12 +1,20 @@
 package com.wallet_management.Servlet.v1;
 
 import java.io.IOException;
-import java.io.PrintWriter;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.wallet_management.Model.Report;
+import com.wallet_management.Model.User;
+import com.wallet_management.Model.Wallet;
 import com.wallet_management.Service.ReportService;
+import com.wallet_management.Service.UserService;
+import com.wallet_management.Service.WalletService;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -18,6 +26,21 @@ import jakarta.servlet.http.HttpServletResponse;
 public class ReportServlet extends HttpServlet{
     
     private ReportService reportService=new ReportService();
+    private WalletService walletService=new WalletService();
+    private UserService userService=new UserService();
+    private ObjectMapper mapper=new ObjectMapper();
+
+    private LocalDate parseDate(String dateStr) throws IllegalArgumentException {
+
+    DateTimeFormatter formatter =
+            DateTimeFormatter.ofPattern("yyyy-MM-dd");
+
+    try {
+        return LocalDate.parse(dateStr, formatter);
+    } catch (DateTimeParseException e) {
+        throw new IllegalArgumentException("Invalid date format. Use yyyy-MM-dd");
+    }
+}
 
     protected void doGet(HttpServletRequest req,HttpServletResponse res) throws ServletException,IOException
     {
@@ -27,47 +50,159 @@ public class ReportServlet extends HttpServlet{
             String path=req.getPathInfo();
             String parts[]=path.split("/");
 
-            String from=req.getParameter("from");
-            String to=req.getParameter("to");
+            // -------------------
+            Report report=mapper.readValue(req.getInputStream(), Report.class);
+
+            String from=report.getFrom();
+            String to=report.getTo();
+
+            LocalDate fromDate;
+            LocalDate toDate;
+
+            try {
+                fromDate = parseDate(from);
+                toDate   = parseDate(to);
+            } catch (IllegalArgumentException e) {
+
+                res.setStatus(400);
+                mapper.writeValue(res.getWriter(),
+                    Map.of("error", e.getMessage()));
+                return;
+            }
+
+            if (fromDate.isAfter(toDate)) {
+                res.setStatus(400);
+                mapper.writeValue(res.getWriter(),
+                    Map.of("error", "fromDate cannot be after toDate"));
+                return;
+            }
+
+            if (toDate.isAfter(LocalDate.now())) {
+                res.sendError(400, "toDate cannot be in future");
+                return;
+            }
+
+            // -------------------
 
             if(parts.length==5 && parts[1].equals("wallet") && parts[4].equals("count"))
             {
-                int wallet_id=Integer.parseInt(parts[2]);
+
+                if(parts[2].trim().isEmpty())
+                {
+                    res.sendError(400,"Enter wallet id in the urll");
+                    return;
+                }
+                int wallet_id;
+
+                try {
+                    wallet_id=Integer.parseInt(parts[2]);
+                } catch (Exception e) {
+                    res.sendError(400,"invalid wallet id formattt");
+                    return;
+                }
+
+                Wallet w=walletService.getWalletByID(wallet_id);
+
+                if(w==null)
+                {
+                    res.sendError(400,"Wallet not found");
+                    return;
+                }
 
                 int count=reportService.getTransactionCountByWallet(wallet_id, from, to);
 
-                res.getWriter().write("No of Transaction from wallet:"+wallet_id+"  is "+count);
+                mapper.writeValue(res.getWriter(), Map.of("wallet_id",wallet_id,"count",count));
                 return;
             }
 
             else if(parts.length==5 && parts[1].equals("user") && parts[4].equals("count"))
             {
-                int user_id=Integer.parseInt(parts[2]);
+
+                if(parts[2].trim().isEmpty())
+                {
+                    res.sendError(400,"Enter user id in the urll");
+                    return;
+                }
+                int user_id;
+
+                try {
+                    user_id=Integer.parseInt(parts[2]);
+                } catch (Exception e) {
+                    res.sendError(400,"invalid user id formattt");
+                    return;
+                }
+
+                User u=userService.getUserByID(user_id);
+
+                if(u==null)
+                {
+                    res.sendError(400,"User not found");
+                    return;
+                }
 
                 int count=reportService.getTransactionCountByUser(user_id, from, to);
 
-                res.getWriter().write("No of Transaction from user:"+user_id+"  is "+count);
+                mapper.writeValue(res.getWriter(), Map.of("user_id",user_id,"count",count));
                 return;
             }
 
             else if(parts.length==5 && parts[1].equals("wallet") && parts[4].equals("spent"))
             {
-                int wallet_id=Integer.parseInt(parts[2]);
+                if(parts[2].trim().isEmpty())
+                {
+                    res.sendError(400,"Enter wallet id in the urll");
+                    return;
+                }
+                int wallet_id;
+
+                try {
+                    wallet_id=Integer.parseInt(parts[2]);
+                } catch (Exception e) {
+                    res.sendError(400,"invalid wallet id formattt");
+                    return;
+                }
+
+                Wallet w=walletService.getWalletByID(wallet_id);
+
+                if(w==null)
+                {
+                    res.sendError(400,"Wallet not found");
+                    return;
+                }
 
                 double amount=reportService.totalAmountSpendFromWallet(wallet_id, from, to);
 
-                res.getWriter().write("Total amount spent from wallet:"+wallet_id+"  is "+amount);
+                mapper.writeValue(res.getWriter(), Map.of("wallet_id",wallet_id,"amount",amount));
                 return;
             }
 
             else if(parts.length==5 && parts[1].equals("user") && parts[4].equals("spent"))
             {
-                int user_id=Integer.parseInt(parts[2]);
+                if(parts[2].trim().isEmpty())
+                {
+                    res.sendError(400,"Enter user id in the urll");
+                    return;
+                }
+                int user_id;
+
+                try {
+                    user_id=Integer.parseInt(parts[2]);
+                } catch (Exception e) {
+                    res.sendError(400,"invalid user id formattt");
+                    return;
+                }
+
+                User u=userService.getUserByID(user_id);
+
+                if(u==null)
+                {
+                    res.sendError(400,"User not found");
+                    return;
+                }
 
                 double amount=reportService.totalAmountSpentByUser(user_id, from, to);
 
-                res.getWriter().write("Total amount spent by user:"+user_id+"  is "+amount);
-
+                mapper.writeValue(res.getWriter(), Map.of("user_id",user_id,"amount",amount));
                 return;
             }
 
@@ -75,24 +210,37 @@ public class ReportServlet extends HttpServlet{
             {
                 HashMap<String,Double> list=reportService.topTenSpendingUser(from, to);
 
-                PrintWriter out=res.getWriter();
-
-                for (Map.Entry<String,Double> map : list.entrySet())
-                {
-                    out.println("Name: "+map.getKey()+" , Amount: "+map.getValue());
-                }
-
+                mapper.writeValue(res.getWriter(), list);
                 return;
 
             }
 
             else if(parts.length==4 && parts[3].equals("avg"))
             {
-                int user_id=Integer.parseInt(parts[2]);
+                if(parts[2].trim().isEmpty())
+                {
+                    res.sendError(400,"Enter user id in the urll");
+                    return;
+                }
+                int user_id;
+
+                try {
+                    user_id=Integer.parseInt(parts[2]);
+                } catch (Exception e) {
+                    res.sendError(400,"invalid user id formattt");
+                    return;
+                }
+
+                User u=userService.getUserByID(user_id);
+
+                if(u==null)
+                {
+                    res.sendError(400,"User not found");
+                    return;
+                }
                 double avg=reportService.avgSpend(user_id, from, to);
 
-                res.getWriter().write("Average spend of user: "+user_id+" is : "+avg);
-
+                mapper.writeValue(res.getWriter(), Map.of("user_id",user_id,"average",avg));
                 return;
             }
             
@@ -100,18 +248,7 @@ public class ReportServlet extends HttpServlet{
             {
                 List<Integer> list=reportService.inactiveWallet();
 
-                PrintWriter out=res.getWriter();
-
-                out.println("Inactive User wallet");
-
-                if(list.size()==0)
-                {
-                    out.println("None");
-                }
-                for(int id:list)
-                {
-                    out.println(id);
-                }
+                mapper.writeValue(res.getWriter(), list);
                 return;
             }
 

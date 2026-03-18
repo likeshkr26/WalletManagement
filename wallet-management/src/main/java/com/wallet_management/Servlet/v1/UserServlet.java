@@ -148,7 +148,7 @@ public class UserServlet extends HttpServlet {
     {
         res.setContentType("application/json");
         res.setCharacterEncoding("UTF-8");
-        
+
         String path=req.getPathInfo();
         String parts[]=path.split("/");
 
@@ -271,5 +271,91 @@ public class UserServlet extends HttpServlet {
             res.sendError(500,e.getMessage());
         }
     }
+
+    @Override
+protected void doPut(HttpServletRequest req,
+                     HttpServletResponse res) throws IOException {
+
+    res.setContentType("application/json");
+    res.setCharacterEncoding("UTF-8");
+
+    ObjectMapper mapper = new ObjectMapper();
+
+    String path = req.getPathInfo();
+
+    // /users/{id}
+    if (path == null || path.equals("/")) {
+        res.sendError(400, "User id required in URL");
+        return;
+    }
+
+    String[] parts = path.split("/");
+
+    if (parts.length < 2) {
+        res.sendError(400, "Invalid URL");
+        return;
+    }
+
+    int userId;
+
+    try {
+        userId = Integer.parseInt(parts[1]);
+    } catch (NumberFormatException e) {
+        res.sendError(400, "Invalid user id format");
+        return;
+    }
+
+    
+    User user = mapper.readValue(req.getInputStream(), User.class);
+
+    if (user.getName() == null || user.getName().trim().isEmpty()) {
+        res.sendError(400, "Name cannot be empty");
+        return;
+    }
+
+    if (user.getPrimary_wallet() == null) {
+        res.sendError(400, "primary_wallet required");
+        return;
+    }
+
+    try{
+        Wallet w=walletService.getWalletByID(user.getPrimary_wallet());
+
+        if(w==null)
+        {
+            res.sendError(400,"Wallet not found");
+            return;
+        }
+    }
+    catch(Exception e)
+    {
+        res.sendError(500,"Internal server error");
+        return;
+    }
+
+
+    try {
+        boolean updated = userService.updateUser(
+                userId,
+                user.getName(),
+                user.getPrimary_wallet()
+        );
+
+        if (!updated) {
+            res.sendError(404, "User not found");
+            return;
+        }
+
+        
+
+        res.setStatus(HttpServletResponse.SC_OK);
+
+        mapper.writeValue(res.getWriter(),
+                Map.of("message", "User updated successfully"));
+
+    } catch (Exception e) {
+        res.sendError(500, "Internal server error");
+    }
+}
 
 }

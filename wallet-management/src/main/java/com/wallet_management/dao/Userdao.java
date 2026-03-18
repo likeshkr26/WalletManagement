@@ -8,6 +8,7 @@ import java.util.List;
 
 import com.wallet_management.Model.User;
 import com.wallet_management.Model.Wallet;
+import com.wallet_management.util.DBConnection;
 
 public class Userdao {
 
@@ -146,6 +147,26 @@ public class Userdao {
             throw new Exception("Error: "+e.getMessage());
         }
     }
+
+    public boolean updateUser(int id,
+                          String name,
+                          int primaryWallet) throws Exception {
+
+    Connection con = DBConnection.getConnection();
+
+    String sql =
+        "UPDATE user SET name=?, primary_wallet=? WHERE user_id=?";
+
+    PreparedStatement ps = con.prepareStatement(sql);
+
+    ps.setString(1, name);
+    ps.setInt(2, primaryWallet);
+    ps.setInt(3, id);
+
+    int rows = ps.executeUpdate();
+
+    return rows > 0; 
+}
 
 
 
