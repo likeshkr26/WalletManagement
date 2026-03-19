@@ -1,12 +1,10 @@
 package com.wallet_management.Servlet.v1;
 
 import java.io.IOException;
-import java.util.List;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.wallet_management.Model.Transaction;
+
 import com.wallet_management.Model.Transfer;
-import com.wallet_management.Model.TransferRequest;
 import com.wallet_management.Model.Wallet;
 import com.wallet_management.Service.TransactionService;
 import com.wallet_management.Service.WalletService;

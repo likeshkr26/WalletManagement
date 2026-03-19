@@ -19,5 +19,6 @@
 /Users/likesh-nts0472/Documents/WalletManagement/wallet-management/src/main/java/com/wallet_management/Servlet/v1/UserServlet.java
 /Users/likesh-nts0472/Documents/WalletManagement/wallet-management/src/main/java/com/wallet_management/util/DBConnection.java
 /Users/likesh-nts0472/Documents/WalletManagement/wallet-management/src/main/java/com/wallet_management/Model/DoTransaction.java
+/Users/likesh-nts0472/Documents/WalletManagement/wallet-management/src/main/java/com/wallet_management/Model/WalletRequest.java
 /Users/likesh-nts0472/Documents/WalletManagement/wallet-management/src/main/java/com/wallet_management/Model/Transaction.java
 /Users/likesh-nts0472/Documents/WalletManagement/wallet-management/src/main/java/com/wallet_management/dao/Transactiondao.java

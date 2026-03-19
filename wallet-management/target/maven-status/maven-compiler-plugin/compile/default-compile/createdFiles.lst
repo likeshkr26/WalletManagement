@@ -4,6 +4,7 @@ com/wallet_management/Service/UserService.class
 com/wallet_management/Servlet/v1/TransactionServlet.class
 com/wallet_management/Model/UserRequest.class
 com/wallet_management/Servlet/v1/WalletServlet.class
+com/wallet_management/Model/WalletRequest.class
 com/wallet_management/Model/Transaction.class
 com/wallet_management/dao/Reportdao.class
 com/wallet_management/Servlet/v1/TopupServlet.class

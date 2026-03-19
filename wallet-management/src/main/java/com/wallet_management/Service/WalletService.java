@@ -35,6 +35,90 @@ public class WalletService {
         return wallet.isActive(con, wallet_id);
     }
 
+    public boolean updateWallet(int wallet_id,String name,int active) throws Exception
+    {
+        Connection con=DBConnection.getConnection();
+
+        if(active!=0 && active!=1)
+        {
+            throw new Exception("The active state should be either 1 or 0");
+        }
+
+        if(name.length()>20)
+        {
+            throw new Exception("Name should be within 20 characters");
+        }
+
+
+        try{
+            return wallet.updateWallet(con,wallet_id,name,active);
+        }
+        catch(Exception e)
+        {
+            throw new Exception("Error updating wallet");
+        }
+        
+    }
+
+    public void updateInactive(int wallet_id,int user_id,int active) throws Exception
+    {
+        Connection con=DBConnection.getConnection();
+        
+        Wallet w;
+
+        try{
+            w=getWalletByID(wallet_id);
+        }
+        catch(Exception e)
+        {
+            throw new Exception("Error: "+e.getMessage());
+        }
+
+        if(user_id!=w.getUser_id())
+        {
+            throw new Exception("This user is not associated with the wallet");
+        }
+
+        wallet.updateInactive(con,wallet_id,active);
+
+    }
+
+    public void deleteWallet(int wallet_id,int user_id) throws Exception
+    {
+
+        Connection con=DBConnection.getConnection();
+
+        Wallet w;
+
+        try{
+            w=getWalletByID(wallet_id);
+        }
+        catch(Exception e)
+        {
+            throw new Exception("Error: "+e.getMessage());
+        }
+
+        if(w==null)
+        {
+            throw new Exception("Wallet not found");
+        }
+
+        if(user_id!=w.getUser_id())
+        {
+            throw new Exception("This user is not associated with the wallet");
+        }
+
+        int count=wallet.checkTransaction(con, wallet_id);
+
+        if(count!=0)
+        {
+            throw new Exception("Delete all associated transactions made from this wallet");
+        }
+
+        wallet.deleteWallet(con,wallet_id);
+
+    }
+
 
 
 

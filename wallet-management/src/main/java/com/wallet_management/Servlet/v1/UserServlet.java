@@ -202,38 +202,6 @@ public class UserServlet extends HttpServlet {
                 res.setStatus(200);
             }
 
-            else if(parts.length==3 && parts[2].equals("wallet"))
-            {
-                
-                Integer walletId = primaryWallet.getWallet_id();
-                Integer activeStatus = primaryWallet.getActive();
-
-                if (walletId == null) {
-                    res.sendError(400, "Wallet id required");
-                    return;
-                }
-
-                if (activeStatus == null) {
-                    res.sendError(400, "Active status required");
-                    return;
-                }
-
-                int wallet_id = walletId;
-                int active = activeStatus;
-
-                try{
-                    userService.updateInactive(wallet_id,user_id,active);
-                }
-                catch(Exception e)
-                {
-                    res.sendError(500, e.getMessage());
-                    return;
-                }
-                
-
-                mapper.writeValue(res.getWriter(), Map.of("message","Wallet's active status is changed"));
-
-            }
         } catch (Exception e) {
             e.printStackTrace();
             res.sendError(500, "Internal server error: " + e.getMessage());
@@ -430,48 +398,6 @@ public class UserServlet extends HttpServlet {
             res.sendError(500, "Internal server error");
         }
     }
-
-    else if(parts.length==3)
-    {
-        Wallet wallet=mapper.readValue(req.getInputStream(), Wallet.class);
-
-        try{
-            Wallet w=walletService.getWalletByID(wallet.getWallet_id());
-
-            if(w==null)
-            {
-                res.sendError(400,"Wallet not found");
-                return;
-            }
-            else if(w.getUser_id()!=userId)
-            {
-                res.sendError(400,"Wallet not belong to the user");
-                return;
-            }
-        }
-        catch(Exception e)
-        {
-            res.sendError(500,"Internal server error: "+e.getMessage());
-            return;
-        }
-
-
-        try{
-            boolean updated=userService.updateWallet(wallet.getWallet_id(),wallet.getName(),wallet.getActive());
-            
-            if (!updated) {
-                res.sendError(404, "Wallet not found");
-                return;
-            }
-            res.setStatus(200);
-
-            mapper.writeValue(res.getWriter(),Map.of("message", "Wallet updated successfully"));
-        }
-        catch (Exception e) {
-            res.sendError(500, "Internal server error");
-        }
-
-    }
     
 }
 
@@ -514,25 +440,6 @@ public class UserServlet extends HttpServlet {
             }
             mapper.writeValue(res.getWriter(), Map.of("message","Deleted the user successfully"));
         }
-        else if(parts.length==3 && parts[2].equals("wallet"))
-        {
-            UserRequest userRequest=mapper.readValue(req.getInputStream(), UserRequest.class);
-
-            int wallet_id=userRequest.getWallet_id();
-            try{
-                userService.deleteWallet(wallet_id,userId);
-            }
-            catch(Exception e)
-            {
-                res.sendError(400,"delete failed: "+e.getMessage());
-            }
-            mapper.writeValue(res.getWriter(), Map.of("message","Deleted the wallet successfully"));
-        }
-
-        
-
-        
-
         
     }
 
