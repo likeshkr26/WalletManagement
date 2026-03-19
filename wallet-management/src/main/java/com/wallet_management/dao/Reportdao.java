@@ -8,6 +8,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
+import com.wallet_management.Model.Pair;
+
 public class Reportdao {
     
     //get transaction count by wallet id
@@ -112,7 +114,7 @@ public class Reportdao {
     }
 
     //top 10 spending users
-    public HashMap<String,Double> topTenSpendingUser(Connection con,String from,String to) throws ServerException,Exception
+    public List<Pair> topTenSpendingUser(Connection con,String from,String to) throws ServerException,Exception
     {
 
         try{
@@ -122,14 +124,14 @@ public class Reportdao {
             ps.setString(2, to);
 
             ResultSet rs=ps.executeQuery();
-            HashMap<String,Double> map=new HashMap<>();
+            List<Pair> list=new ArrayList<>();
 
             while(rs.next())
             {
-                map.put(rs.getString(1),rs.getDouble(2));
+                list.add(new Pair(rs.getString(1),rs.getDouble(2)));
             }
 
-            return map;
+            return list;
         }
         catch(Exception e)
         {

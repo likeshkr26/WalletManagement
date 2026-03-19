@@ -47,6 +47,15 @@ public class TransactionRequest {
     public void setAmount(Double amount) {
         this.amount = amount;
     }
+    public TransactionRequest(Integer wallet_id, Integer type, Double amount, Integer receiver_id,
+            String transaction_unique_id, Integer transaction_id) {
+        this.wallet_id = wallet_id;
+        this.type = type;
+        this.amount = amount;
+        this.receiver_id = receiver_id;
+        this.transaction_unique_id = transaction_unique_id;
+        this.transaction_id = transaction_id;
+    }
 
     
 }

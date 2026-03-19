@@ -4,6 +4,7 @@ import java.sql.Connection;
 import java.util.HashMap;
 import java.util.List;
 
+import com.wallet_management.Model.Pair;
 import com.wallet_management.dao.Reportdao;
 import com.wallet_management.util.DBConnection;
 
@@ -38,7 +39,7 @@ public class ReportService {
         return reportdao.totalAmountSpentByUser(con, user_id, from, to);
     }
 
-    public HashMap<String,Double> topTenSpendingUser(String from,String to) throws Exception
+    public List<Pair> topTenSpendingUser(String from,String to) throws Exception
     {
         Connection con=DBConnection.getConnection();
 

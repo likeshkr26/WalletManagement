@@ -4,12 +4,14 @@ import java.io.IOException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.wallet_management.Model.Report;
+import com.wallet_management.Model.Pair;
+import com.wallet_management.Model.ReportRequest;
 import com.wallet_management.Model.User;
 import com.wallet_management.Model.Wallet;
 import com.wallet_management.Service.ReportService;
@@ -22,7 +24,7 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
-@WebServlet("/v1/reports/*")
+@WebServlet("/v1/reports")
 public class ReportServlet extends HttpServlet{
     
     private ReportService reportService=new ReportService();
@@ -44,58 +46,79 @@ public class ReportServlet extends HttpServlet{
 
     protected void doGet(HttpServletRequest req,HttpServletResponse res) throws ServletException,IOException
     {
+        res.setContentType("application/json");
+        res.setCharacterEncoding("UTF-8");
 
         try{
 
-            String path=req.getPathInfo();
-            String parts[]=path.split("/");
-
+            ReportRequest report=null;
             // -------------------
-            Report report=mapper.readValue(req.getInputStream(), Report.class);
+            try{
+                report=mapper.readValue(req.getInputStream(), ReportRequest.class);
+            }
+            catch(Exception e)
+            {
+                mapper.writeValue(res.getWriter(),Map.of("message", "Enter all vaide attributes"));
+                return;
+            }
+            
 
             String from=report.getFrom();
             String to=report.getTo();
+            String resource=report.getResource();
+            String operation=report.getOperation();
 
-            LocalDate fromDate;
-            LocalDate toDate;
-
-            try {
-                fromDate = parseDate(from);
-                toDate   = parseDate(to);
-            } catch (IllegalArgumentException e) {
-
-                res.setStatus(400);
-                mapper.writeValue(res.getWriter(),
-                    Map.of("error", e.getMessage()));
+            if(!operation.equals("expired") && (from==null || to==null))
+            {
+                mapper.writeValue(res.getWriter(),Map.of("message", "Enter both from and to date"));
                 return;
             }
 
-            if (fromDate.isAfter(toDate)) {
-                res.setStatus(400);
-                mapper.writeValue(res.getWriter(),
-                    Map.of("error", "fromDate cannot be after toDate"));
-                return;
+            if(!operation.equals("expired"))
+            {
+                LocalDate fromDate;
+                LocalDate toDate;
+
+                try {
+                    fromDate = parseDate(from);
+                    toDate   = parseDate(to);
+                } catch (IllegalArgumentException e) {
+
+                    res.setStatus(400);
+                    mapper.writeValue(res.getWriter(),
+                        Map.of("error", e.getMessage()));
+                    return;
+                }
+
+                if (fromDate.isAfter(toDate)) {
+                    res.setStatus(400);
+                    mapper.writeValue(res.getWriter(),
+                        Map.of("error", "fromDate cannot be after toDate"));
+                    return;
+                }
+
+                if (toDate.isAfter(LocalDate.now())) {
+                    res.sendError(400, "toDate cannot be in future");
+                    return;
+                }
+
             }
 
-            if (toDate.isAfter(LocalDate.now())) {
-                res.sendError(400, "toDate cannot be in future");
-                return;
-            }
-
+            
             // -------------------
 
-            if(parts.length==5 && parts[1].equals("wallet") && parts[4].equals("count"))
+            if(resource.equals("wallet") && operation.equals("count"))
             {
 
-                if(parts[2].trim().isEmpty())
+                if(report.getWallet_id()==null)
                 {
-                    res.sendError(400,"Enter wallet id in the urll");
+                    res.sendError(400,"Enter wallet id");
                     return;
                 }
                 int wallet_id;
 
                 try {
-                    wallet_id=Integer.parseInt(parts[2]);
+                    wallet_id=report.getWallet_id();
                 } catch (Exception e) {
                     res.sendError(400,"invalid wallet id formattt");
                     return;
@@ -105,7 +128,7 @@ public class ReportServlet extends HttpServlet{
 
                 if(w==null)
                 {
-                    res.sendError(400,"Wallet not found");
+                    mapper.writeValue(res.getWriter(), Map.of("message","Wallet not found"));
                     return;
                 }
 
@@ -115,18 +138,18 @@ public class ReportServlet extends HttpServlet{
                 return;
             }
 
-            else if(parts.length==5 && parts[1].equals("user") && parts[4].equals("count"))
+            else if(resource.equals("user") && operation.equals("count"))
             {
 
-                if(parts[2].trim().isEmpty())
+                if(report.getUser_id()==null)
                 {
-                    res.sendError(400,"Enter user id in the urll");
+                    res.sendError(400,"Enter user id");
                     return;
                 }
                 int user_id;
 
                 try {
-                    user_id=Integer.parseInt(parts[2]);
+                    user_id=report.getUser_id();
                 } catch (Exception e) {
                     res.sendError(400,"invalid user id formattt");
                     return;
@@ -136,7 +159,7 @@ public class ReportServlet extends HttpServlet{
 
                 if(u==null)
                 {
-                    res.sendError(400,"User not found");
+                    mapper.writeValue(res.getWriter(), Map.of("message","user not found"));
                     return;
                 }
 
@@ -146,9 +169,9 @@ public class ReportServlet extends HttpServlet{
                 return;
             }
 
-            else if(parts.length==5 && parts[1].equals("wallet") && parts[4].equals("spent"))
+            else if(resource.equals("wallet") && operation.equals("spent"))
             {
-                if(parts[2].trim().isEmpty())
+                if(report.getWallet_id()==null)
                 {
                     res.sendError(400,"Enter wallet id in the urll");
                     return;
@@ -156,7 +179,7 @@ public class ReportServlet extends HttpServlet{
                 int wallet_id;
 
                 try {
-                    wallet_id=Integer.parseInt(parts[2]);
+                    wallet_id=report.getWallet_id();
                 } catch (Exception e) {
                     res.sendError(400,"invalid wallet id formattt");
                     return;
@@ -176,9 +199,9 @@ public class ReportServlet extends HttpServlet{
                 return;
             }
 
-            else if(parts.length==5 && parts[1].equals("user") && parts[4].equals("spent"))
+            else if(resource.equals("user") && operation.equals("spent"))
             {
-                if(parts[2].trim().isEmpty())
+                if(report.getUser_id()==null)
                 {
                     res.sendError(400,"Enter user id in the urll");
                     return;
@@ -186,7 +209,7 @@ public class ReportServlet extends HttpServlet{
                 int user_id;
 
                 try {
-                    user_id=Integer.parseInt(parts[2]);
+                    user_id=report.getUser_id();
                 } catch (Exception e) {
                     res.sendError(400,"invalid user id formattt");
                     return;
@@ -206,26 +229,27 @@ public class ReportServlet extends HttpServlet{
                 return;
             }
 
-            else if(parts.length==3 && parts[2].equals("top"))
+            else if(operation.equals("top"))
             {
-                HashMap<String,Double> list=reportService.topTenSpendingUser(from, to);
+                List<Pair> list=reportService.topTenSpendingUser(from, to);
 
-                mapper.writeValue(res.getWriter(), list);
+
+                    mapper.writeValue(res.getWriter(), list);
                 return;
 
             }
 
-            else if(parts.length==4 && parts[3].equals("avg"))
+            else if(operation.equals("avg"))
             {
-                if(parts[2].trim().isEmpty())
+                if(report.getUser_id()==null)
                 {
-                    res.sendError(400,"Enter user id in the urll");
+                    res.sendError(400,"Enter user id");
                     return;
                 }
                 int user_id;
 
                 try {
-                    user_id=Integer.parseInt(parts[2]);
+                    user_id=report.getUser_id();
                 } catch (Exception e) {
                     res.sendError(400,"invalid user id formattt");
                     return;
@@ -244,11 +268,16 @@ public class ReportServlet extends HttpServlet{
                 return;
             }
             
-            else if(parts.length==3 && parts[2].equals("expired"))
+            else if(operation.equals("expired"))
             {
                 List<Integer> list=reportService.inactiveWallet();
 
                 mapper.writeValue(res.getWriter(), list);
+                return;
+            }
+            else
+            {
+                mapper.writeValue(res.getWriter(), Map.of("message","Enter the attributes required to generate report"));
                 return;
             }
 
@@ -260,3 +289,4 @@ public class ReportServlet extends HttpServlet{
     }
 
 }
+
