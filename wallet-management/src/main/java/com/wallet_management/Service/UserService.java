@@ -25,11 +25,11 @@ public class UserService {
         return userdao.getUserByID(con, user_id);
     }
 
-    public List<com.wallet_management.Model.Wallet> getWalletByUser(int user_id) throws Exception
+    public List<com.wallet_management.Model.Wallet> getWalletByUser(int user_id,int page,int size,String sort,String order,Integer active,String column,String value) throws Exception
     {
         Connection con= DBConnection.getConnection();
 
-        return userdao.getWalletByUser(con, user_id);
+        return userdao.getWalletByUser(con, user_id, page, size, sort, order, active,column,value);
     }
 
     public int getWalletCountByUser(int user_id) throws Exception
@@ -49,6 +49,28 @@ public class UserService {
     public boolean updateUser(int id,String name,int primaryWallet) throws Exception {
 
         return userdao.updateUser(id, name, primaryWallet);
+    }
+
+    public void deleteUser(int user_id) throws Exception
+    {
+        Connection con=DBConnection.getConnection();
+
+        User u;
+        try {
+            u = getUserByID(user_id);
+        } catch (Exception e) {
+            throw new Exception("User id not found");
+        }
+
+        int count=userdao.checkWallet(con,user_id);
+
+        if(count!=0)
+        {
+            throw new Exception("Delete all associated wallet with your user id");
+        }
+
+        userdao.deleteUser(con,user_id);
+
     }
 
 

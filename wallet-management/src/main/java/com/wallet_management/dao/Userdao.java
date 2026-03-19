@@ -69,36 +69,84 @@ public class Userdao {
     }
 
     //get wallet by user id
-    public List<Wallet> getWalletByUser(Connection con,int user_id) throws Exception
-    {
+    public List<Wallet> getWalletByUser(Connection con,int user_id,int page,int size,String sort,String order,Integer active,String column,String value) throws Exception {
 
-        try{
+        List<String> allowedSort =List.of("wallet_id","name","balance","active");
 
-            PreparedStatement ps=con.prepareStatement("select * from wallet where user_id=?");
-            ps.setInt(1,user_id);
+        List<String> allowedSearch =List.of("wallet_id","name","balance","active");
 
-            ResultSet rs=ps.executeQuery();
+        if(sort == null || !allowedSort.contains(sort))
+            sort = "wallet_id";
 
-            List<Wallet> wallets=new ArrayList<>();
+        if(order == null ||(!order.equalsIgnoreCase("asc") && !order.equalsIgnoreCase("desc")))
+            order = "asc";
 
-            while(rs.next())
-            {
-                Wallet wallet=new Wallet();
-                wallet.setWallet_id(rs.getInt("wallet_id"));
-                wallet.setName(rs.getString("name"));
-                wallet.setBalance(rs.getDouble("balance"));
-                wallet.setUser_id(rs.getInt("user_id"));
-                wallet.setActive(rs.getInt("active"));
-                wallets.add(wallet);
+        StringBuilder sql =new StringBuilder("select * from wallet where user_id=?");
+
+        if(active != null) {
+            sql.append(" and active=?");
+        }
+
+        boolean applySearch =
+                column != null && value != null && !value.isBlank();
+
+        if(applySearch) {
+
+            if(!allowedSearch.contains(column)) {
+                throw new Exception("Invalid search column");
             }
 
-            return wallets;
-        }
-        catch(Exception e)
-        {
-            throw new Exception("Error "+e.getMessage());
+            sql.append(" and ").append(column).append(" = ?");
         }
 
+        sql.append(" order by ").append(sort).append(" ").append(order);
+
+        sql.append(" limit ? offset ?");
+
+        PreparedStatement ps =con.prepareStatement(sql.toString());
+
+        int index = 1;
+
+        ps.setInt(index++, user_id);
+
+        if(active != null) {
+            ps.setInt(index++, active);
+        }
+
+        if(applySearch) {
+
+            if(column.equals("wallet_id") || column.equals("active")) {
+                ps.setInt(index++, Integer.parseInt(value));
+            }
+            else if(column.equals("balance")) {
+                ps.setDouble(index++, Double.parseDouble(value));
+            }
+            else {
+                ps.setString(index++, value);
+            }
+        }
+
+        int offset = (page - 1) * size;
+
+        ps.setInt(index++, size);
+        ps.setInt(index++, offset);
+
+        ResultSet rs = ps.executeQuery();
+
+        List<Wallet> wallets = new ArrayList<>();
+
+        while(rs.next()) {
+            Wallet wallet = new Wallet();
+            wallet.setWallet_id(rs.getInt("wallet_id"));
+            wallet.setName(rs.getString("name"));
+            wallet.setBalance(rs.getDouble("balance"));
+            wallet.setUser_id(rs.getInt("user_id"));
+            wallet.setActive(rs.getInt("active"));
+
+            wallets.add(wallet);
+        }
+
+        return wallets;
     }
 
     //get wallet count of a user
@@ -167,6 +215,47 @@ public class Userdao {
 
     return rows > 0; 
 }
+
+    public int checkWallet(Connection con,int user_id) throws Exception
+    {
+
+        try{
+            PreparedStatement ps=con.prepareStatement("select count(*) as count from wallet where user_id=?");
+            ps.setInt(1, user_id);
+
+            ResultSet rs=ps.executeQuery();
+
+            if(rs.next())
+            {
+                return rs.getInt("count");
+            }
+        }
+        catch(Exception e)
+        {
+            throw new Exception();
+        }
+        return 0;
+    }
+
+    public void deleteUser(Connection con,int user_id) throws Exception
+    {
+
+        try{
+            PreparedStatement ps=con.prepareStatement("delete from user where user_id=?");
+            ps.setInt(1, user_id);
+
+            int rows=ps.executeUpdate();
+
+            if(rows==0)
+            {
+                throw new Exception("No user deleted");
+            }
+        }
+        catch(Exception e)
+        {
+            throw new Exception("Error:"+e.getMessage());
+        }
+    }
 
 
 

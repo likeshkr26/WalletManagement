@@ -7,6 +7,7 @@ import java.util.Map;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wallet_management.Model.PrimaryWallet;
 import com.wallet_management.Model.User;
+import com.wallet_management.Model.UserRequest;
 import com.wallet_management.Model.Wallet;
 import com.wallet_management.Service.UserService;
 import com.wallet_management.Service.WalletService;
@@ -208,6 +209,10 @@ public class UserServlet extends HttpServlet {
 
         String path=req.getPathInfo();
 
+        UserRequest userRequest=mapper.readValue(req.getInputStream(), UserRequest.class);
+
+        String operation=userRequest.getOperation();
+
         try{
 
             String parts[]=path.split("/");
@@ -239,7 +244,7 @@ public class UserServlet extends HttpServlet {
 
             // ----------------------------------------------
 
-            if(parts.length==2)
+            if(parts.length==2 && operation.equals("detail"))
             {
                 //return user data
                 mapper.writeValue(res.getWriter(), user);
@@ -247,9 +252,39 @@ public class UserServlet extends HttpServlet {
 
             // ----------------------------------------------
 
-            else if(parts.length==3 && parts[2].equals("wallet"))
+            else if(parts.length==3 && operation.equals("list"))
             {
-                List<Wallet> wallets=userService.getWalletByUser(user_id);
+
+                int page = 1;
+                int size = 5;
+                String sort = "wallet_id";
+                String order = "asc";
+                Integer active = null;
+
+                // pagination
+                if(req.getParameter("page") != null)
+                    page = Integer.parseInt(req.getParameter("page"));
+
+                if(req.getParameter("size") != null)
+                    size = Integer.parseInt(req.getParameter("size"));
+
+                // sorting
+                if(req.getParameter("sort") != null)
+                    sort = req.getParameter("sort");
+
+                if(req.getParameter("order") != null)
+                    order = req.getParameter("order");
+
+                // filtering
+                if(req.getParameter("active") != null)
+                    active = Integer.parseInt(req.getParameter("active"));
+
+                String column = req.getParameter("column");
+                String value  = req.getParameter("value");
+
+                List<Wallet> wallets =
+                    userService.getWalletByUser(user_id, page, size, sort, order, active,column,value);
+
 
                 // can return the wallets
                 // return empty list when no wallet present
@@ -259,7 +294,7 @@ public class UserServlet extends HttpServlet {
 
             // ----------------------------------------------
 
-            else if(parts.length==4 && parts[3].equals("count"))
+            else if(parts.length==3 && operation.equals("count"))
             {
                 int count=userService.getWalletCountByUser(user_id);
 
@@ -274,14 +309,11 @@ public class UserServlet extends HttpServlet {
         }
     }
 
-    @Override
-protected void doPut(HttpServletRequest req,
-                     HttpServletResponse res) throws IOException {
+
+    protected void doPut(HttpServletRequest req,HttpServletResponse res) throws IOException {
 
     res.setContentType("application/json");
     res.setCharacterEncoding("UTF-8");
-
-    ObjectMapper mapper = new ObjectMapper();
 
     String path = req.getPathInfo();
 
@@ -359,5 +391,47 @@ protected void doPut(HttpServletRequest req,
         res.sendError(500, "Internal server error");
     }
 }
+
+
+    protected void doDelete(HttpServletRequest req,HttpServletResponse res) throws ServletException,IOException
+    {
+        res.setContentType("application/json");
+        res.setCharacterEncoding("UTF-8");
+
+        String path = req.getPathInfo();
+
+        // /users/{id}
+        if (path == null || path.equals("/")) {
+            res.sendError(400, "User id required in URL");
+            return;
+        }
+
+        String[] parts = path.split("/");
+
+        if (parts.length < 2) {
+            res.sendError(400, "Invalid URL");
+            return;
+        }
+
+        int userId;
+
+        try {
+            userId = Integer.parseInt(parts[1]);
+        } catch (NumberFormatException e) {
+            res.sendError(400, "Invalid user id format");
+            return;
+        }  
+
+        try {
+            userService.deleteUser(userId);
+        } catch (Exception e) {
+            res.sendError(400,"delete failed: "+e.getMessage());
+        }
+
+        mapper.writeValue(res.getWriter(), Map.of("message","Deleted the user successfully"));
+
+        
+    }
+
 
 }
