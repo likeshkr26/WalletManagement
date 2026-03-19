@@ -4,13 +4,9 @@ import java.io.IOException;
 import java.util.Map;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.wallet_management.Model.DoTransaction;
 import com.wallet_management.Model.Transaction;
 import com.wallet_management.Model.TransactionRequest;
-import com.wallet_management.Model.Transfer;
-import com.wallet_management.Model.Wallet;
 import com.wallet_management.Service.TransactionService;
-import com.wallet_management.Service.WalletService;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -22,7 +18,6 @@ import jakarta.servlet.http.HttpServletResponse;
 public class TransactionServlet extends HttpServlet{
 
     private TransactionService transactionService=new TransactionService();
-    private WalletService walletService=new WalletService();
     private ObjectMapper mapper=new ObjectMapper();
     
     protected void doPost(HttpServletRequest req,HttpServletResponse res) throws ServletException,IOException

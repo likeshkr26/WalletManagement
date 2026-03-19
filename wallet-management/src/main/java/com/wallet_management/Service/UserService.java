@@ -62,7 +62,7 @@ public class UserService {
             throw new Exception("User id not found");
         }
 
-        int count=userdao.checkWallet(con,user_id);
+        int count=userdao.checkWallet(con,u.getUser_id());
 
         if(count!=0)
         {
