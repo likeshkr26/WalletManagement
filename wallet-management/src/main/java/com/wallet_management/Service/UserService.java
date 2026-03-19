@@ -4,14 +4,12 @@ import java.sql.Connection;
 import java.util.List;
 
 import com.wallet_management.Model.User;
-import com.wallet_management.Model.Wallet;
 import com.wallet_management.dao.Userdao;
 import com.wallet_management.util.DBConnection;
 
 public class UserService {
 
     private Userdao userdao=new Userdao();
-    private WalletService walletService=new WalletService();
     
     public void createUser(User user) throws Exception
     {

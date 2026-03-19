@@ -6,14 +6,10 @@ import java.util.Map;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wallet_management.Model.DoTransaction;
-import com.wallet_management.Model.PrimaryWallet;
 import com.wallet_management.Model.Transaction;
-import com.wallet_management.Model.User;
-import com.wallet_management.Model.UserRequest;
 import com.wallet_management.Model.Wallet;
 import com.wallet_management.Model.WalletRequest;
 import com.wallet_management.Service.TransactionService;
-import com.wallet_management.Service.UserService;
 import com.wallet_management.Service.WalletService;
 
 import jakarta.servlet.ServletException;
@@ -26,7 +22,6 @@ import jakarta.servlet.http.HttpServletResponse;
 public class WalletServlet extends HttpServlet {
 
     private WalletService walletService=new WalletService();
-    private UserService userService=new UserService();
     private TransactionService transactionService=new TransactionService();
     private ObjectMapper mapper=new ObjectMapper();
 

@@ -171,4 +171,33 @@ public class Transactiondao {
         }
     }
 
+    public Transaction getTransactionDetail(Connection con,int transaction_id) throws Exception
+    {
+
+        try{
+            PreparedStatement ps=con.prepareStatement("select * from transaction where transaction_id=?");
+            ps.setInt(1, transaction_id);
+
+            ResultSet rs=ps.executeQuery();
+
+            Transaction t=new Transaction();
+
+            if(rs.next())
+            {
+                t.setTransaction_id(rs.getInt("transaction_id"));
+                t.setWallet_id(rs.getInt("Wallet_id"));
+                t.setAmount(rs.getDouble("amount"));
+                t.setTimestamp(rs.getString("created_at"));
+                t.setType(rs.getInt("type"));
+                t.setTransfer_id(rs.getString("transfer_id"));
+            }
+
+            return t;
+        }
+        catch(Exception e)
+        {
+            throw new Exception("Error: "+e.getMessage());
+        }
+    }
+
 }

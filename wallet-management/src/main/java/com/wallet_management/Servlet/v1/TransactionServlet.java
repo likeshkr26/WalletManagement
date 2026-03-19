@@ -1,9 +1,12 @@
 package com.wallet_management.Servlet.v1;
 
 import java.io.IOException;
+import java.util.Map;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-
+import com.wallet_management.Model.DoTransaction;
+import com.wallet_management.Model.Transaction;
+import com.wallet_management.Model.TransactionRequest;
 import com.wallet_management.Model.Transfer;
 import com.wallet_management.Model.Wallet;
 import com.wallet_management.Service.TransactionService;
@@ -25,126 +28,189 @@ public class TransactionServlet extends HttpServlet{
     protected void doPost(HttpServletRequest req,HttpServletResponse res) throws ServletException,IOException
     {
 
-        String path=req.getPathInfo();
-        String parts[]=path.split("/");
 
-        Transfer transfer=mapper.readValue(req.getInputStream(), Transfer.class);
-        
-        if(transfer.getFrom()==null || transfer.getTo()==null || transfer.getAmount()==null)
-        {
-            res.sendError(400,"Enter from,to wallet id and amount as well");
-            return;
-        }
+        TransactionRequest transactionRequest=mapper.readValue(req.getInputStream(), TransactionRequest.class);
 
-        int from=transfer.getFrom();
-        int to=transfer.getTo();
-        double amount=transfer.getAmount();
-
-        if(from==to)
-        {
-            res.sendError(400,"Amount cannot be transfered to same wallet");
-            return;
-        }
-
-        Wallet w1;
-        Wallet w2;
-        try {
-            w1=walletService.getWalletByID(from);
-            w2=walletService.getWalletByID(to);
-        } catch (Exception e) {
-            res.sendError(500,"Error occured while fetching walled details");
-            return;
-        }
-
-        if(w1==null)
-        {
-            res.sendError(400,"Enter valid wallet id for sender");
-            return;
-        }
-
-        if(w2==null)
-        {
-            res.sendError(400,"Enter valid wallet id for receiver");
-            return;
-        }
-
-        if(w1.getActive()==0)
-        {
-            res.sendError(400,"The sender wallet is inactive");
-            return;
-        }
-
-        if(w2.getActive()==0)
-        {
-            res.sendError(400,"The receiver wallet is inactive");
-            return;
-        }
-
-        if(amount<0)
-        {
-            res.sendError(400, "Amount should be a positive value");
-            return;
-        }
-
-        if(amount==0)
-        {
-            res.sendError(400, "Amount to transfer cannot be 0");
-            return;
-        }
-
-        if(amount>9999999999999.99)
-        {
-            res.sendError(400, "Amount should be of 15 digits with last 2 digit as decimal");
-            return;
-        }
-
-
+        Integer type;
+        Double amount;
+        Integer wallet_id;
+        Integer receiver_id = null;
 
         try{
-
-            if(parts.length==2 && parts[1].equals("transfer"))
-            {
-                transactionService.doTransaction(from, to, 3, amount);
-
-                res.setStatus(201);
-                res.getWriter().write("The amount transfer has been completed successfuly");
-            }
+            type=transactionRequest.getType();
         }
         catch(Exception e)
         {
-            throw new IOException("Error: "+e.getMessage());
+            res.sendError(400, "Enter valid type value");
+            return;
         }
-    }
 
+        try{
+            amount=transactionRequest.getAmount();
+        }
+        catch(Exception e)
+        {
+            res.sendError(400, "Enter valid amount value");
+            return;
+        }
+
+        try{
+            wallet_id=transactionRequest.getWallet_id();
+        }
+        catch(Exception e)
+        {
+            res.sendError(400, "Enter valid wallet id value");
+            return;
+        }
+
+        if(type==3)
+        {
+            try{
+                receiver_id=transactionRequest.getReceiver_id();
+            }
+            catch(Exception e)
+            {
+                res.sendError(400, "Enter valid receiver id value");
+                return;
+            }
+        }
+
+        if(type==null || amount==null || wallet_id==null || (type==3 && receiver_id==null) )
+        {
+            res.sendError(400,"Enter wallet_id,receiver_id,type and amount");
+            return;
+        }
+
+        if(type!=1 && type!=2 && type!=3)
+        {
+            res.sendError(400,"Enter valid type (1,2,3)");
+            return;
+        }
+
+        try{
+
+            if(type!=3)
+            {
+                transactionService.doTransaction(wallet_id, 0, type, amount);
+
+                mapper.writeValue(res.getWriter(), Map.of("message","The transaction has been completed successfully"));
+                res.setStatus(201);
+            }
+            else
+            {
+                transactionService.doTransaction(wallet_id, receiver_id, type, amount);
+
+                res.setStatus(201);
+                mapper.writeValue(res.getWriter(), Map.of("message","The amount transfer has been completed successfuly"));
+            }
+
+        }
+        catch(Exception e)
+        {
+            res.sendError(500,"Error:"+e.getMessage());
+        }
+
+    }
 
     protected void doDelete(HttpServletRequest req, HttpServletResponse res)throws IOException {
 
     res.setContentType("application/json");
 
-    try {
+    TransactionRequest transactionRequest=mapper.readValue(req.getInputStream(), TransactionRequest.class);
+    String transferId = transactionRequest.getTransaction_unique_id();
 
-        String pathInfo = req.getPathInfo();
-        String parts[]=pathInfo.split("/");
-        String transferId = parts[1];
+    if (transferId == null || transferId.isEmpty()) {
 
-        if (transferId == null || transferId.isEmpty()) {
+        res.sendError(400, "transfer_id is required");
+        return;
+    }
 
-            res.sendError(400, "transfer_id is required");
+        try {
+
+            transactionService.deleteTransaction(transferId);
+            
+            res.setStatus(HttpServletResponse.SC_OK);
+            mapper.writeValue(res.getWriter(), Map.of("message","Transfer deleted successfully"));
+
+        }
+        catch (Exception e) {
+
+            mapper.writeValue(res.getWriter(), Map.of("message","Error:"+e.getMessage()));
+        }
+
+    }
+
+    protected void doGet(HttpServletRequest req,HttpServletResponse res) throws ServletException,IOException
+    {
+        res.setContentType("application/json");
+        res.setCharacterEncoding("UTF-8");
+
+        TransactionRequest transactionRequest;
+        
+        try{
+            transactionRequest=mapper.readValue(req.getInputStream(), TransactionRequest.class);
+        }
+        catch(Exception e)
+        {
+            mapper.writeValue(res.getWriter(), Map.of("message","Enter valid transaction id"));
             return;
         }
 
+        if(transactionRequest.getTransaction_id()==null)
+        {
+            mapper.writeValue(res.getWriter(), Map.of("message","Enter transaction id"));
+            return;
+        }
 
-        transactionService.deleteTransaction(transferId);
+        int transaction_id=transactionRequest.getTransaction_id();
+        
 
-        res.setStatus(HttpServletResponse.SC_OK);
-        res.getWriter().write("{\"message\":\"Transfer deleted successfully\"}");
+        try{
+
+            Transaction transaction=transactionService.getTransactionDetail(transaction_id);
+
+            mapper.writeValue(res.getWriter(), transaction);
+
+        }
+        catch(Exception e)
+        {
+            mapper.writeValue(res.getWriter(), Map.of("message","Enter transaction id"));
+            return;
+        }
 
     }
-    catch (Exception e) {
 
-        res.sendError(500, "Error: " + e.getMessage());
+    protected void doPut(HttpServletRequest req,HttpServletResponse res) throws ServletException,IOException
+    {
+        mapper.writeValue(res.getWriter(), Map.of("message","Transactions cannot be modified"));
     }
-}
+
+    @Override
+    protected void service(HttpServletRequest req,HttpServletResponse resp) throws ServletException,IOException {
+
+        if ("PATCH".equalsIgnoreCase(req.getMethod())) {
+            try {
+                doPatch(req, resp);
+            } catch (ServletException e) {
+   
+                e.printStackTrace();
+            } catch (IOException e) {
+               
+                e.printStackTrace();
+            } catch (Exception e) {
+             
+                e.printStackTrace();
+            }
+        } else {
+            super.service(req, resp);
+        }
+    }
+
+    protected void doPatch(HttpServletRequest req,HttpServletResponse res) throws ServletException,Exception
+    {
+        mapper.writeValue(res.getWriter(), Map.of("message","Transactions cannot be modified"));
+    }
+
 
 
 }
