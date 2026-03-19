@@ -8,7 +8,6 @@ import java.util.List;
 
 import com.wallet_management.Model.User;
 import com.wallet_management.Model.Wallet;
-import com.wallet_management.util.DBConnection;
 
 public class Userdao {
 
