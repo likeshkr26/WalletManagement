@@ -1,9 +1,12 @@
 package com.wallet_management.Servlet.v1;
 
 import java.io.IOException;
+import java.util.List;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.wallet_management.Model.Transaction;
 import com.wallet_management.Model.Transfer;
+import com.wallet_management.Model.TransferRequest;
 import com.wallet_management.Model.Wallet;
 import com.wallet_management.Service.TransactionService;
 import com.wallet_management.Service.WalletService;
@@ -114,6 +117,36 @@ public class TransactionServlet extends HttpServlet{
             throw new IOException("Error: "+e.getMessage());
         }
     }
+
+
+    protected void doDelete(HttpServletRequest req, HttpServletResponse res)throws IOException {
+
+    res.setContentType("application/json");
+
+    try {
+
+        String pathInfo = req.getPathInfo();
+        String parts[]=pathInfo.split("/");
+        String transferId = parts[1];
+
+        if (transferId == null || transferId.isEmpty()) {
+
+            res.sendError(400, "transfer_id is required");
+            return;
+        }
+
+
+        transactionService.deleteTransaction(transferId);
+
+        res.setStatus(HttpServletResponse.SC_OK);
+        res.getWriter().write("{\"message\":\"Transfer deleted successfully\"}");
+
+    }
+    catch (Exception e) {
+
+        res.sendError(500, "Error: " + e.getMessage());
+    }
+}
 
 
 }

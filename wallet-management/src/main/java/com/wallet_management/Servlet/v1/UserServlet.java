@@ -63,6 +63,7 @@ public class UserServlet extends HttpServlet {
                 userService.createUser(user);
 
                 mapper.writeValue(res.getWriter(),Map.of("message","User Created Successfullyyy"));
+                res.setStatus(201);
                 return;
             }
 
@@ -111,6 +112,7 @@ public class UserServlet extends HttpServlet {
                 walletService.createWallet(name, user_id);
 
                 mapper.writeValue(res.getWriter(),Map.of("message","Wallet create successfullyyy"));
+                res.setStatus(201);
                 return;
             }
 

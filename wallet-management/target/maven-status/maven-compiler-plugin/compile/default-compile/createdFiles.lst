@@ -14,6 +14,7 @@ com/wallet_management/Model/Transfer.class
 com/wallet_management/Model/Wallet.class
 com/wallet_management/Model/Report.class
 com/wallet_management/util/DBConnection.class
+com/wallet_management/Model/TransferRequest.class
 com/wallet_management/dao/Transactiondao.class
 com/wallet_management/Service/WalletService.class
 com/wallet_management/Service/ReportService.class

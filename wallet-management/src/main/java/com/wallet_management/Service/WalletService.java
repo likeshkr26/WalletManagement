@@ -51,7 +51,7 @@ public class WalletService {
             double newBalance=Balance+amount;
 
             wallet.updateBalance(con,wallet_id,newBalance);
-            transaction.logTransaction(con,wallet_id,amount,1);
+            transaction.logTransaction(con,wallet_id,amount,1,"");
             
         }
         catch(Exception e)

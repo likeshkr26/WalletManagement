@@ -7,6 +7,7 @@
 /Users/likesh-nts0472/Documents/WalletManagement/wallet-management/src/main/java/com/wallet_management/dao/Userdao.java
 /Users/likesh-nts0472/Documents/WalletManagement/wallet-management/src/main/java/com/wallet_management/Model/Wallet.java
 /Users/likesh-nts0472/Documents/WalletManagement/wallet-management/src/main/java/com/wallet_management/Service/ReportService.java
+/Users/likesh-nts0472/Documents/WalletManagement/wallet-management/src/main/java/com/wallet_management/Model/TransferRequest.java
 /Users/likesh-nts0472/Documents/WalletManagement/wallet-management/src/main/java/com/wallet_management/dao/Reportdao.java
 /Users/likesh-nts0472/Documents/WalletManagement/wallet-management/src/main/java/com/wallet_management/Servlet/v1/WalletServlet.java
 /Users/likesh-nts0472/Documents/WalletManagement/wallet-management/src/main/java/com/wallet_management/dao/Walletdao.java
