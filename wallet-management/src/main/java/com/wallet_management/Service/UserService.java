@@ -2,14 +2,17 @@ package com.wallet_management.Service;
 
 import java.sql.Connection;
 import java.util.List;
+import java.util.Map;
 
 import com.wallet_management.Model.User;
+import com.wallet_management.Model.Wallet;
 import com.wallet_management.dao.Userdao;
 import com.wallet_management.util.DBConnection;
 
 public class UserService {
 
     private Userdao userdao=new Userdao();
+    private WalletService walletService=new WalletService();
     
     public void createUser(User user) throws Exception
     {
@@ -42,6 +45,18 @@ public class UserService {
     public void updatePrimaryWallet(int user_id,int wallet_id) throws Exception
     {
         Connection con=DBConnection.getConnection();
+
+        Wallet wallet=walletService.getWalletByID(wallet_id);
+
+        if(wallet==null)
+        {
+            throw new Exception("Wallet not found");
+        }
+
+        if(wallet.getUser_id()!=user_id)
+        {
+            throw new Exception("user is not associated with the given wallet id");
+        }
 
         userdao.updatePrimaryWallet(con, user_id, wallet_id);
     }

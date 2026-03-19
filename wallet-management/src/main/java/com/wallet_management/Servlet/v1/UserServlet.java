@@ -166,16 +166,9 @@ public class UserServlet extends HttpServlet {
                     mapper.writeValue(res.getWriter(),Map.of("message","Primary wallet id required"));
                     return;
                 }
+                
 
-                Wallet wallet=walletService.getWalletByID(primaryWallet.getPrimary_wallet());
-
-                if(wallet==null)
-                {
-                    mapper.writeValue(res.getWriter(),Map.of("message","Wallet not found"));
-                    return;
-                }
-
-                userService.updatePrimaryWallet(user_id, wallet.getWallet_id());
+                userService.updatePrimaryWallet(user_id, primaryWallet.getPrimary_wallet());
 
                 mapper.writeValue(res.getWriter(), Map.of("message","Primary wallet id changed"));
 
@@ -397,10 +390,6 @@ public class UserServlet extends HttpServlet {
 
     protected void doDelete(HttpServletRequest req,HttpServletResponse res) throws ServletException,IOException
     {
-        if (!"application/json".equals(req.getContentType())) {
-            mapper.writeValue(res.getWriter(),Map.of("message", "Content-Type must be application/json"));
-            return;
-        }
 
         res.setContentType("application/json");
         res.setCharacterEncoding("UTF-8");
