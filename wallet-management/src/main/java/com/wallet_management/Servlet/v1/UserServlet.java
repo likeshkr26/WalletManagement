@@ -26,12 +26,12 @@ public class UserServlet extends HttpServlet {
     private ObjectMapper mapper=new ObjectMapper();
 
     //create user
-    protected void doPost(HttpServletRequest req,HttpServletResponse res) throws IOException
+    protected void doPost(HttpServletRequest req,HttpServletResponse res) throws ServletException,IOException
     {
 
         if (!"application/json".equals(req.getContentType())) {
-        res.sendError(415, "Content-Type must be application/json");
-        return;
+            mapper.writeValue(res.getWriter(),Map.of("message","Content-Type must be application/json"));
+            return;
         }
 
         res.setContentType("application/json");
@@ -49,13 +49,13 @@ public class UserServlet extends HttpServlet {
 
                 if(name==null || name.trim().isEmpty())
                 {
-                    res.sendError(400,"Name is requireddd");
+                    mapper.writeValue(res.getWriter(),Map.of("message","Name is requireddd"));
                     return;
                 }
 
                 if(name.length()>20)
                 {
-                    res.sendError(400,"Name must be within 20 charactersss");
+                    mapper.writeValue(res.getWriter(),Map.of("message","Name must be within 20 charactersss"));
                     return;
                 }
 
@@ -64,7 +64,6 @@ public class UserServlet extends HttpServlet {
                 userService.createUser(user);
 
                 mapper.writeValue(res.getWriter(),Map.of("message","User Created Successfullyyy"));
-                res.setStatus(201);
                 return;
             }
 
@@ -75,15 +74,16 @@ public class UserServlet extends HttpServlet {
 
                 if(parts[1]==null || parts[1].trim().isEmpty())
                 {
-                    res.sendError(400,"Enter userid in the url");
+                    mapper.writeValue(res.getWriter(),Map.of("message","Enter userid in the url"));
                     return;
                 }
                 int user_id;
 
                 try {
                     user_id=Integer.parseInt(parts[1]);
-                } catch (Exception e) {
-                    res.sendError(400,"invalid userid format");
+                } 
+                catch (NumberFormatException e) {
+                    mapper.writeValue(res.getWriter(),Map.of("message","invalid userid format"));
                     return;
                 }
 
@@ -93,19 +93,19 @@ public class UserServlet extends HttpServlet {
 
                 if(user==null)
                 {
-                    res.sendError(400,"User not foundddd");
+                    mapper.writeValue(res.getWriter(),Map.of("message","User not foundddd"));
                     return;
                 }
 
                 if(name==null || name.trim().isEmpty())
                 {
-                    res.sendError(400,"Wallet name is requireddd");
+                    mapper.writeValue(res.getWriter(),Map.of("message","Wallet name is requireddd"));
                     return;
                 }
 
                 if(name.length()>20)
                 {
-                    res.sendError(400,"Wallet name must be within 20 charactersss");
+                    mapper.writeValue(res.getWriter(),Map.of("message","Wallet name must be within 20 charactersss"));
                     return;
                 }
 
@@ -113,77 +113,57 @@ public class UserServlet extends HttpServlet {
                 walletService.createWallet(name, user_id);
 
                 mapper.writeValue(res.getWriter(),Map.of("message","Wallet create successfullyyy"));
-                res.setStatus(201);
                 return;
             }
 
         }
         catch(Exception e)
         {
-            res.sendError(500,e.getMessage());
-        }
-    }
-
-    @Override
-    protected void service(HttpServletRequest req,
-                        HttpServletResponse resp)
-                        throws ServletException,IOException {
-
-        if ("PATCH".equalsIgnoreCase(req.getMethod())) {
-            try {
-                doPatch(req, resp);
-            } catch (ServletException e) {
-   
-                e.printStackTrace();
-            } catch (IOException e) {
-               
-                e.printStackTrace();
-            } catch (Exception e) {
-             
-                e.printStackTrace();
-            }
-        } else {
-            super.service(req, resp);
+            mapper.writeValue(res.getWriter(),Map.of("message", "Internal Server Error: "+e.getMessage()));
         }
     }
 
     protected void doPatch(HttpServletRequest req,HttpServletResponse res) throws ServletException,Exception
     {
-        try {
-            res.setContentType("application/json");
-            res.setCharacterEncoding("UTF-8");
+        if (!"application/json".equals(req.getContentType())) {
+            mapper.writeValue(res.getWriter(),Map.of("message","Content-Type must be application/json"));
+            return;
+        }
 
-            String path=req.getPathInfo();
-            String parts[]=path.split("/");
+        res.setContentType("application/json");
+        res.setCharacterEncoding("UTF-8");
+
+        String path=req.getPathInfo();
+        String parts[]=path.split("/");
+
+        try {
 
             if(parts[1]==null || parts[1].trim().isEmpty())
             {
-                res.sendError(400,"Enter userid in the url");
+                mapper.writeValue(res.getWriter(),Map.of("message","Enter userid in the url"));
                 return;
             }
             int user_id;
 
             try {
                  user_id=Integer.parseInt(parts[1]);
-            } catch (Exception e) {
-                res.sendError(400,"invalid userid format");
+            } catch (NumberFormatException e) {
+                mapper.writeValue(res.getWriter(),Map.of("message","invalid userid format"));
                 return;
             }
-
-            PrimaryWallet primaryWallet=mapper.readValue(req.getInputStream(), PrimaryWallet.class);
 
             User u=userService.getUserByID(user_id);
 
             if(u==null)
             {
-                res.sendError(400,"User not found");
+                mapper.writeValue(res.getWriter(),Map.of("message","User not found"));
                 return;
             }
 
-            if(parts.length==2)
-            {
+                PrimaryWallet primaryWallet=mapper.readValue(req.getInputStream(), PrimaryWallet.class);
+
                 if (primaryWallet.getPrimary_wallet() == null) {
-                    res.sendError(400, "Primary wallet id required");
+                    mapper.writeValue(res.getWriter(),Map.of("message","Primary wallet id required"));
                     return;
                 }
 
@@ -191,7 +171,7 @@ public class UserServlet extends HttpServlet {
 
                 if(wallet==null)
                 {
-                    res.sendError(400,"Wallet not found");
+                    mapper.writeValue(res.getWriter(),Map.of("message","Wallet not found"));
                     return;
                 }
 
@@ -199,19 +179,22 @@ public class UserServlet extends HttpServlet {
 
                 mapper.writeValue(res.getWriter(), Map.of("message","Primary wallet id changed"));
 
-                res.setStatus(200);
-            }
-
         } catch (Exception e) {
-            e.printStackTrace();
-            res.sendError(500, "Internal server error: " + e.getMessage());
+            mapper.writeValue(res.getWriter(),Map.of("message","Internal server error:"+ e.getMessage()));
         }
 
     }
 
+
     //Get operations
     protected void doGet(HttpServletRequest req, HttpServletResponse res) throws IOException
     {
+
+        if (!"application/json".equals(req.getContentType())) {
+            mapper.writeValue(res.getWriter(),Map.of("message","Content-Type must be application/json"));
+            return;
+        }
+
         res.setContentType("application/json");
         res.setCharacterEncoding("UTF-8");
 
@@ -227,7 +210,7 @@ public class UserServlet extends HttpServlet {
 
             // ----------------------------------------------
             if (path == null || path.equals("/")) {
-                res.sendError(400, "User ID required");
+                mapper.writeValue(res.getWriter(),Map.of("message","User ID required"));
                 return;
             }
 
@@ -236,9 +219,9 @@ public class UserServlet extends HttpServlet {
             try{
                 user_id=Integer.parseInt(parts[1]);
             }
-            catch(Exception e)
+            catch(NumberFormatException e)
             {
-                res.sendError(400, "invalid user ID format");
+                mapper.writeValue(res.getWriter(),Map.of("message","invalid user ID format"));
                 return;
             }
 
@@ -246,7 +229,7 @@ public class UserServlet extends HttpServlet {
 
             if(user==null)
             {
-                res.sendError(404, "User not found");
+                mapper.writeValue(res.getWriter(),Map.of("message","User not found"));
                 return;
             }    
 
@@ -268,6 +251,8 @@ public class UserServlet extends HttpServlet {
                 String sort = "wallet_id";
                 String order = "asc";
                 Integer active = null;
+                String column=null;
+                String value=null;
 
                 // pagination
                 if(req.getParameter("page") != null)
@@ -287,11 +272,14 @@ public class UserServlet extends HttpServlet {
                 if(req.getParameter("active") != null)
                     active = Integer.parseInt(req.getParameter("active"));
 
-                String column = req.getParameter("column");
-                String value  = req.getParameter("value");
+                if(req.getParameter("column") != null)
+                    column = req.getParameter("column");
 
-                List<Wallet> wallets =
-                    userService.getWalletByUser(user_id, page, size, sort, order, active,column,value);
+                if(req.getParameter("value") != null)
+                    value = req.getParameter("value");
+
+
+                List<Wallet> wallets =userService.getWalletByUser(user_id, page, size, sort, order, active,column,value);
 
 
                 // can return the wallets
@@ -313,12 +301,17 @@ public class UserServlet extends HttpServlet {
         }
         catch(Exception e)
         {
-            res.sendError(500,e.getMessage());
+            mapper.writeValue(res.getWriter(),Map.of("message","Internal Server Error: "+e.getMessage()));
         }
     }
 
 
     protected void doPut(HttpServletRequest req,HttpServletResponse res) throws IOException {
+
+    if(!"application/json".equals(req.getContentType())) {
+        mapper.writeValue(res.getWriter(),Map.of("message","Content-Type must be application/json"));
+        return;
+    }
 
     res.setContentType("application/json");
     res.setCharacterEncoding("UTF-8");
@@ -327,14 +320,14 @@ public class UserServlet extends HttpServlet {
 
     // /users/{id}
     if (path == null || path.equals("/")) {
-        res.sendError(400, "User id required in URL");
+        mapper.writeValue(res.getWriter(),Map.of("message","User id required in URL"));
         return;
     }
 
     String[] parts = path.split("/");
 
     if (parts.length < 2) {
-        res.sendError(400, "Invalid URL");
+        mapper.writeValue(res.getWriter(),Map.of("message","Invalid URL"));
         return;
     }
 
@@ -343,7 +336,7 @@ public class UserServlet extends HttpServlet {
     try {
         userId = Integer.parseInt(parts[1]);
     } catch (NumberFormatException e) {
-        res.sendError(400, "Invalid user id format");
+        mapper.writeValue(res.getWriter(),Map.of("message","Invalid user id format"));
         return;
     }
 
@@ -353,12 +346,12 @@ public class UserServlet extends HttpServlet {
         User user = mapper.readValue(req.getInputStream(), User.class);
 
         if (user.getName() == null || user.getName().trim().isEmpty()) {
-            res.sendError(400, "Name cannot be empty");
+            mapper.writeValue(res.getWriter(),Map.of("message","Name cannot be empty"));
             return;
         }
 
         if (user.getPrimary_wallet() == null) {
-            res.sendError(400, "primary_wallet required");
+            mapper.writeValue(res.getWriter(),Map.of("message","primary_wallet required"));
             return;
         }
 
@@ -367,18 +360,18 @@ public class UserServlet extends HttpServlet {
 
             if(w==null)
             {
-                res.sendError(400,"Wallet not found");
+                mapper.writeValue(res.getWriter(),Map.of("message","Wallet not found"));
                 return;
             }
             else if(w.getUser_id()!=userId)
             {
-                res.sendError(400,"Wallet not belong to the user");
+                mapper.writeValue(res.getWriter(),Map.of("message","Wallet not belong to the user"));
                 return;
             }
         }
         catch(Exception e)
         {
-            res.sendError(500,"Internal server error");
+            mapper.writeValue(res.getWriter(),Map.of("message","Internal server error"));
             return;
         }
 
@@ -387,7 +380,7 @@ public class UserServlet extends HttpServlet {
             boolean updated = userService.updateUser(userId,user.getName(),user.getPrimary_wallet());
 
             if (!updated) {
-                res.sendError(404, "User not found");
+                mapper.writeValue(res.getWriter(),Map.of("message","User not found"));
                 return;
             }
             res.setStatus(HttpServletResponse.SC_OK);
@@ -395,7 +388,7 @@ public class UserServlet extends HttpServlet {
             mapper.writeValue(res.getWriter(),Map.of("message", "User updated successfully"));
 
         } catch (Exception e) {
-            res.sendError(500, "Internal server error");
+            mapper.writeValue(res.getWriter(),Map.of("message","Internal server error: "+e.getMessage()));
         }
     }
     
@@ -404,6 +397,11 @@ public class UserServlet extends HttpServlet {
 
     protected void doDelete(HttpServletRequest req,HttpServletResponse res) throws ServletException,IOException
     {
+        if (!"application/json".equals(req.getContentType())) {
+            mapper.writeValue(res.getWriter(),Map.of("message", "Content-Type must be application/json"));
+            return;
+        }
+
         res.setContentType("application/json");
         res.setCharacterEncoding("UTF-8");
 
@@ -411,14 +409,14 @@ public class UserServlet extends HttpServlet {
 
         // /users/{id}
         if (path == null || path.equals("/")) {
-            res.sendError(400, "User id required in URL");
+            mapper.writeValue(res.getWriter(),Map.of("message", "User id required in URL"));
             return;
         }
 
         String[] parts = path.split("/");
 
         if (parts.length < 2) {
-            res.sendError(400, "Invalid URL");
+            mapper.writeValue(res.getWriter(),Map.of("message", "Invalid URL"));
             return;
         }
 
@@ -427,7 +425,7 @@ public class UserServlet extends HttpServlet {
         try {
             userId = Integer.parseInt(parts[1]);
         } catch (NumberFormatException e) {
-            res.sendError(400, "Invalid user id format");
+            mapper.writeValue(res.getWriter(),Map.of("message", "Invalid user id format"));
             return;
         }  
 
@@ -436,11 +434,32 @@ public class UserServlet extends HttpServlet {
             try {
             userService.deleteUser(userId);
             } catch (Exception e) {
-                res.sendError(400,"delete failed: "+e.getMessage());
+                mapper.writeValue(res.getWriter(),Map.of("message", "delete failed: "+e.getMessage()));
             }
             mapper.writeValue(res.getWriter(), Map.of("message","Deleted the user successfully"));
         }
         
+    }
+
+    @Override
+    protected void service(HttpServletRequest req,HttpServletResponse resp) throws ServletException,IOException {
+
+        if ("PATCH".equalsIgnoreCase(req.getMethod())) {
+            try {
+                doPatch(req, resp);
+            } catch (ServletException e) {
+   
+                e.printStackTrace();
+            } catch (IOException e) {
+               
+                e.printStackTrace();
+            } catch (Exception e) {
+             
+                e.printStackTrace();
+            }
+        } else {
+            super.service(req, resp);
+        }
     }
 
 

@@ -48,28 +48,36 @@ public class UserService {
 
     public boolean updateUser(int id,String name,int primaryWallet) throws Exception {
 
-        return userdao.updateUser(id, name, primaryWallet);
+        Connection con=DBConnection.getConnection();
+
+        return userdao.updateUser(con,id, name, primaryWallet);
     }
 
     public void deleteUser(int user_id) throws Exception
     {
-        Connection con=DBConnection.getConnection();
+        try (Connection con = DBConnection.getConnection()) {
 
-        User u;
-        try {
-            u = getUserByID(user_id);
-        } catch (Exception e) {
+        con.setAutoCommit(false); // start transaction
+
+        User u = getUserByID(user_id);
+
+        if (u == null) {
             throw new Exception("User id not found");
         }
 
-        int count=userdao.checkWallet(con,u.getUser_id());
+        int count = userdao.checkWallet(con, user_id);
 
-        if(count!=0)
-        {
+        if (count != 0) {
             throw new Exception("Delete all associated wallet with your user id");
         }
 
-        userdao.deleteUser(con,user_id);
+        userdao.deleteUser(con, user_id);
+
+        con.commit(); 
+        }
+        catch (Exception e) {
+            throw e;
+        }
 
     }
 

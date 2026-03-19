@@ -32,7 +32,7 @@ public class Userdao {
         }
         catch(Exception e)
         {
-            throw new Exception("Error: "+e.getMessage());
+            throw new Exception("DB Error: "+e.getMessage());
         }
     } 
 
@@ -61,7 +61,7 @@ public class Userdao {
         }
         catch(Exception e)
         {
-            throw new Exception("Error "+ e.getMessage());
+            throw new Exception("DB Error "+ e.getMessage());
         }
 
 
@@ -167,7 +167,7 @@ public class Userdao {
         }
         catch(Exception e)
         {
-            throw new Exception("Error: "+e.getMessage());
+            throw new Exception("DB Error: "+e.getMessage());
         }
 
         return -1;
@@ -192,20 +192,14 @@ public class Userdao {
         }
         catch(Exception e)
         {
-            throw new Exception("Error: "+e.getMessage());
+            throw new Exception("DB Error: "+e.getMessage());
         }
     }
 
-    public boolean updateUser(int id,
-                          String name,
-                          int primaryWallet) throws Exception {
+    public boolean updateUser(Connection con,int id,String name,int primaryWallet) throws Exception {
 
-    Connection con = DBConnection.getConnection();
 
-    String sql =
-        "UPDATE user SET name=?, primary_wallet=? WHERE user_id=?";
-
-    PreparedStatement ps = con.prepareStatement(sql);
+    PreparedStatement ps = con.prepareStatement("UPDATE user SET name=?, primary_wallet=? WHERE user_id=?");
 
     ps.setString(1, name);
     ps.setInt(2, primaryWallet);
@@ -232,7 +226,7 @@ public class Userdao {
         }
         catch(Exception e)
         {
-            throw new Exception();
+            throw new Exception("DB Error: "+e.getMessage());
         }
         return 0;
     }
@@ -253,7 +247,7 @@ public class Userdao {
         }
         catch(Exception e)
         {
-            throw new Exception("Error:"+e.getMessage());
+            throw new Exception("DB Error: "+e.getMessage());
         }
     }
 
