@@ -163,28 +163,4 @@ public class Walletdao {
     }
 
 
-
-
-
-
-
-
-    //this function is not used
-    public void updateBalance(Connection con,int wallet_id,double newBalance) throws Exception{
-
-        PreparedStatement ps=con.prepareStatement("update wallet set balance=? where wallet_id=? and active=1");
-
-        ps.setDouble(1,newBalance);
-        ps.setInt(2,wallet_id);
-
-        int rows=ps.executeUpdate();
-
-        if(rows==0)
-        {
-            throw new Exception("Wallet not found or inactive");
-        }
-
-    }
-
-
 }
