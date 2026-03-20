@@ -5,26 +5,41 @@ import java.sql.Connection;
 import com.wallet_management.Model.Wallet;
 import com.wallet_management.dao.Walletdao;
 import com.wallet_management.util.DBConnection;
+import com.wallet_management.util.ValidationUtil;
 
 public class WalletService {
 
     private Walletdao wallet=new Walletdao();
 
 
-    public void createWallet(String name,int user_id) throws Exception
-    {
-        Connection con=DBConnection.getConnection();
+    // public void createWallet(String name,int user_id) throws Exception
+    // {
+    //     Connection con=DBConnection.getConnection();
 
-        wallet.createWallet(con, name, user_id);
+    //     wallet.createWallet(con, name, user_id);
 
+    // }
+    
+    public void createWallet(String name, int userId) throws Exception {
+
+        name = ValidationUtil.validateName(name, "Wallet name");
+
+        if (userId <= 0)
+            throw new Exception("Invalid user id");
+
+        Connection con = DBConnection.getConnection();
+        wallet.createWallet(con, name, userId);
     }
 
-    public Wallet getWalletByID(int wallet_id) throws Exception
-    {
-        Connection con=DBConnection.getConnection();
+    public Wallet getWalletByID(int walletId) throws Exception {
 
-        return wallet.getWalletByID(con, wallet_id);
-    }
+    if (walletId <= 0)
+        throw new Exception("Invalid wallet id");
+
+    Connection con = DBConnection.getConnection();
+
+    return wallet.getWalletByID(con, walletId);
+}
 
     public int isActive(int wallet_id) throws Exception
     {
